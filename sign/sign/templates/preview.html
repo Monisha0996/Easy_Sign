@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Preview and Download Signed PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        iframe {
+            width: 80%;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2>Your PDF has been signed and encrypted!</h2>
+    <p>Here’s a preview of the signed document. You can download the signed PDF by clicking the button below:</p>
+    
+    <!-- Display the signed PDF in an iframe -->
+    <iframe src="{{ preview_url }}"></iframe>
+    
+    <!-- Download link for the signed PDF -->
+    <a href="{{ download_url }}" download>
+        <button>Download Signed PDF</button>
+    </a>
+</body>
+</html>

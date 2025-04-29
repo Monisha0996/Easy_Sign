@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Preview PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h2>Preview PDF before signing</h2>
+    <iframe src="{{ preview_url }}"></iframe>
+    
+    <h3>Add Signature</h3>
+    <form id="sign-form" action="/sign" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="pdf_path" value="{{ pdf_path }}">
+        <label><input type="radio" name="signature-method" id="draw-signature-option" checked> Draw Signature</label>
+        <label><input type="radio" name="signature-method" id="upload-signature-option"> Upload Signature</label>
+
+        <!-- Canvas Drawing Section -->
+        <div id="draw-signature-section">
+            <canvas id="signature-canvas" width="400" height="150" style="border: 1px solid black;"></canvas>
+            <br>
+            <button type="button" id="clear-signature">Clear</button>
+            <button type="button" id="save-signature">Save Signature</button>
+        </div>
+
+        <!-- File Upload Section -->
+        <div id="upload-signature-section" style="display:none;">
+            <input type="file" name="signature-file" id="signature-file" accept="image/*">
+        </div>
+        
+        <button type="submit">Submit Signature</button>
+    </form>
+
+    <script>
+        const drawSignatureOption = document.getElementById('draw-signature-option');
+        const uploadSignatureOption = document.getElementById('upload-signature-option');
+        const drawSignatureSection = document.getElementById('draw-signature-section');
+        const uploadSignatureSection = document.getElementById('upload-signature-section');
+        const signatureCanvas = document.getElementById('signature-canvas');
+        const ctx = signatureCanvas.getContext('2d');
+        let signatureData = null;
+        let drawing = false;
+
+        // Toggle between drawing and uploading signature
+        drawSignatureOption.addEventListener('change', function () {
+            drawSignatureSection.style.display = 'block';
+            uploadSignatureSection.style.display = 'none';
+        });
+
+        uploadSignatureOption.addEventListener('change', function () {
+            drawSignatureSection.style.display = 'none';
+            uploadSignatureSection.style.display = 'block';
+        });
+
+        // Handle drawing on canvas
+        signatureCanvas.addEventListener('mousedown', () => { drawing = true; });
+        signatureCanvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+        signatureCanvas.addEventListener('mousemove', function (e) {
+            if (!drawing) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'black';
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        });
+
+        // Save the drawn signature
+        document.getElementById('save-signature').addEventListener('click', () => {
+            signatureData = signatureCanvas.toDataURL('image/png');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'signatureData';
+            hiddenInput.value = signatureData;
+            document.getElementById('sign-form').appendChild(hiddenInput);
+        });
+
+        // Clear canvas
+        document.getElementById('clear-signature').addEventListener('click', () => {
+            ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            signatureData = null;
+        });
+    </script>
+</body>
+</html>

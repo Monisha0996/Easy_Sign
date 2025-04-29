@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Sign PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        label {
+            font-size: 1.1rem;
+            color: #333;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"],
+        input[type="radio"] {
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        #upload-signature-section {
+            display: none;
+        }
+
+        #draw-signature-section {
+            display: block;
+        }
+
+        #clear-signature,
+        #save-signature {
+            background-color: #ff5722;
+            margin-right: 10px;
+        }
+
+        #clear-signature:hover,
+        #save-signature:hover {
+            background-color: #e64a19;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload PDF and Add Signature</h1>
+        <form id="pdf-form" method="POST" enctype="multipart/form-data">
+            <div>
+                <label for="pdf-file">Upload PDF:</label>
+                <input type="file" name="pdf_file" id="pdf-file" required>
+            </div>
+        
+            <div>
+                <h3>Select Signature Method:</h3>
+                <label><input type="radio" name="signature-method" id="draw-signature-option" checked> Draw Signature</label>
+                <label><input type="radio" name="signature-method" id="upload-signature-option"> Upload Signature</label>
+            </div>
+        
+            <!-- Canvas Drawing Section -->
+            <div id="draw-signature-section">
+                <canvas id="signature-canvas" width="400" height="150"></canvas>
+                <br>
+                <button type="button" id="clear-signature">Clear</button>
+                <button type="button" id="save-signature">Save Signature</button>
+            </div>
+        
+            <!-- File Upload Section -->
+            <div id="upload-signature-section" class="hidden">
+                <label for="signature-file">Upload Signature Image:</label>
+                <input type="file" name="signature-file" id="signature-file" accept="image/*">
+            </div>
+        
+            <button type="submit">Upload and Sign PDF</button>
+        </form>
+        
+        <script>
+            const drawSignatureOption = document.getElementById('draw-signature-option');
+            const uploadSignatureOption = document.getElementById('upload-signature-option');
+            const drawSignatureSection = document.getElementById('draw-signature-section');
+            const uploadSignatureSection = document.getElementById('upload-signature-section');
+            const signatureCanvas = document.getElementById('signature-canvas');
+            const ctx = signatureCanvas.getContext('2d');
+            let signatureData = null;
+            let drawing = false;
+        
+            // Toggle between drawing and uploading signature
+            drawSignatureOption.addEventListener('change', function () {
+                drawSignatureSection.style.display = 'block';
+                uploadSignatureSection.style.display = 'none';
+            });
+        
+            uploadSignatureOption.addEventListener('change', function () {
+                drawSignatureSection.style.display = 'none';
+                uploadSignatureSection.style.display = 'block';
+            });
+        
+            // Handle drawing on canvas
+            signatureCanvas.addEventListener('mousedown', () => { drawing = true; });
+            signatureCanvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+            signatureCanvas.addEventListener('mousemove', function (e) {
+                if (!drawing) return;
+                const rect = signatureCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            });
+        
+            // Save the drawn signature
+            document.getElementById('save-signature').addEventListener('click', () => {
+                signatureData = signatureCanvas.toDataURL('image/png');
+                alert('Signature saved!');
+            });
+        
+            // Clear canvas
+            document.getElementById('clear-signature').addEventListener('click', () => {
+                ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+                signatureData = null;
+            });
+        
+            // Handle form submission
+            document.getElementById('pdf-form').addEventListener('submit', function (event) {
+                if (drawSignatureOption.checked && signatureData) {
+                    // Append the canvas signature as a hidden field
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'signatureData';
+                    hiddenInput.value = signatureData;
+                    this.appendChild(hiddenInput);
+                }
+            });
+        </script>
+        
+</body>
+</html>
